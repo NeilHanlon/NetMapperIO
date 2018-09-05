@@ -1,0 +1,63 @@
+﻿<script type="text/javascript">
+        /*
+         * Network Topology Diagram Drawer
+         * 
+         * */
+        $('#topologyObjects').change(function () {
+            if ($('#topologyObjects').val() > 0) {
+                console.log("Loading Topology Object");
+
+                var topologyId = $('#topologyObjects').val();
+                $.getJSON("/assets/cs/topologyLoader.aspx?topologyId=" + topologyId, function (data) {
+
+                    if (data["ErrorMessage"] != null) {
+                        alert(data["ErrorMessage"]);
+                        return;
+                    }
+
+                    // Create all the Nodes
+                    var Nodes = [];
+                    for (i = 0; i < data["Nodes"].length; i++) {
+                        var Node = { id: data["Nodes"][i]["NodeObjectId"] };
+                        Node["label"] = data["Nodes"][i]["Title"];
+                        if (data["Nodes"][i]["HoverText"] != null) Node["title"] = data["Nodes"][i]["HoverText"];
+                        
+                        Node["shape"] = "image";
+                        Node["image"] = data["Nodes"][i]["NetIconPath"];
+                        Nodes.push(Node);
+                    }
+                    console.log(JSON.stringify(Nodes));
+                    nodes = new vis.DataSet(Nodes);
+
+                    // Create all the Edges
+                    var Edges = [];
+                    for (i = 0; i < data["Edges"].length; i++) {
+                        var Edge = { id: data["Edges"][i]["EdgeId"] };
+                        Edge["label"] = data["Edges"][i]["Title"];
+                        Edge["from"] = data["Edges"][i]["FromNodeId"];
+                        Edge["to"] = data["Edges"][i]["ToNodeId"];
+                        Edge["color"] = { color: data["Edges"][i]["Colour"] };
+                        Edge["font"] = { align: "top" };
+                        Edge["physics"] = false;
+                        Edge["dashes"] = data["Edges"][i]["isDashed"];
+                        Edges.push(Edge);
+                    }
+                    console.log(JSON.stringify(Edges));
+                    edges = new vis.DataSet(Edges);
+
+                    // Draw the Network
+                    var container = document.getElementById('mynetwork');
+                    var options = {
+                    };
+                    var data = {
+                        nodes: nodes,
+                        edges: edges
+                    };
+                    
+                    var network = new vis.Network(container, data, options);
+                });
+
+
+            }
+        });
+    </script>
